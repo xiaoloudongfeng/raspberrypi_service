@@ -27,21 +27,22 @@ char weather_stat = '!';         // get_weather_func stat
 
 void *get_weather_func(void *arg)
 {
-	int					fd		  = -1;
-	int					i		  = 0;
-	struct sockaddr_in	addr	  = {};
+	int					fd;
+	struct sockaddr_in	addr;
 	short				dest_port = 80;
-	int					rc		  = -1;
-	unsigned char		recv_buf[1024 * 512] = {};
-	unsigned int		recv_off  = 0;
 	struct timeval		timeout   = {1, 0};
-	char			   *prev	  = NULL;
-	char			   *curr	  = NULL;
-	int					word_count = 0;
+
+	int					rc;
+	
+	unsigned int		recv_off;
+	unsigned char		recv_buf[1024 * 512];
+
+	int					i;
+	char			   *prev;
+	char			   *curr;
+	int					word_count;
 
 	while (1) {
-		word_count = 0;
-
 		fd = socket(AF_INET, SOCK_STREAM, 0);
 		if (fd < 0) {
 			fprintf(stderr, "socket() failed\n");
@@ -82,12 +83,14 @@ void *get_weather_func(void *arg)
 				}
 				break;
 			}
+
 			recv_off += rc;
 		}
 
-		//fprintf(stderr, "%s", recv_buf);
-		fprintf(stderr, "recv_off = %d\n", recv_off);
-		fprintf(stderr, "strlen(recv_buf): %d\n", strlen((const char *)recv_buf));
+		// DEGUG INFO
+		// fprintf(stderr, "%s", recv_buf);
+		// fprintf(stderr, "recv_off = %d\n", recv_off);
+		// fprintf(stderr, "strlen(recv_buf): %d\n", strlen((const char *)recv_buf));
 	
 		prev = strstr((const char *)recv_buf, MATCH_STR);
 		if (prev == NULL) {
@@ -102,16 +105,22 @@ void *get_weather_func(void *arg)
 		*curr = '\0';
 		fprintf(stderr, "prev: %s\n", prev);
 
+		word_count = 0;
+
 		for (curr = prev; *curr; curr++) {
 			if (*curr == ' ' || *curr == '\t') {
-				if (curr != prev) {		// find a word
+				if (curr != prev) {					// found a word
 					word_count++;
 					if (word_count == 6) {
 						*curr = '\0';
-						fprintf(stderr, "************天气: %s\n", prev);
+						
+						fprintf(stderr, "********天气[%s]********\n", prev);
+						
 						memset(weather, 0, sizeof(weather));
 						strcpy(weather, prev);
+						
 						weather_stat = '.';
+						
 						break;
 					}
 				}
