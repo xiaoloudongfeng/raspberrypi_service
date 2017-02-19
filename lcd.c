@@ -13,6 +13,7 @@
 #include "system_usage.h"
 #include "dht22.h"
 #include "12864_display.h"
+#include "srv_func.h"
 
 int gpio_init(void)
 {
@@ -31,7 +32,7 @@ int main(int argc, char **argv)
 	time_t		timevalue;
 	struct tm  *tm;
 	int			rc;
-	pthread_t	temp_hum_pt, cpu_usage_pt, mem_usage_pt, weather_pt;
+	pthread_t	temp_hum_pt, cpu_usage_pt, mem_usage_pt, weather_pt, srv_pt;
 	pthread_attr_t attr;
 	char		roll_weather[512];
 	int			off = 0;
@@ -80,6 +81,12 @@ int main(int argc, char **argv)
 	}
 
 	rc = pthread_create(&weather_pt, &attr, get_weather_func, NULL);
+	if (rc < 0) {
+		fprintf(stderr, "pthread_create() failed\n");
+		return -1;
+	}
+
+	rc = pthread_create(&srv_pt, &attr, srv_func, NULL);
 	if (rc < 0) {
 		fprintf(stderr, "pthread_create() failed\n");
 		return -1;
