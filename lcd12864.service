@@ -1,0 +1,9 @@
+[Unit]
+Description=Lcd12864 Daemon
+
+[Service]
+ExecStart=/home/xiaolou/workspace/gpio/lcd -d
+Type=forking
+
+[Install]
+WantedBy=multi-user.target
