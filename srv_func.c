@@ -99,7 +99,8 @@ void *srv_func(void *arg)
 			if (cli_fd < 0) {
 				fprintf(stderr, "accept() failed\n");
 
-				goto loop1;
+				//goto loop1;
+				continue;
 			}
 
 			send_bytes = send(cli_fd, send_buf, strlen(send_buf), 0);
