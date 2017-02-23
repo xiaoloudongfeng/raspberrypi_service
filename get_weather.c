@@ -34,7 +34,7 @@ void *get_weather_func(void *arg)
 
 	int					rc;
 	
-	unsigned int		recv_off;
+	unsigned int		recv_off, buf_len;
 	unsigned char		recv_buf[1024 * 512];
 
 	int					i;
@@ -73,10 +73,12 @@ void *get_weather_func(void *arg)
 		}
 	
 		recv_off = 0;
+		buf_len = sizeof(recv_buf);
 		memset(recv_buf, 0, sizeof(recv_buf));
-		while (1) {
-			rc = recv(fd, recv_buf + recv_off, sizeof(recv_buf), 0);
-			if (rc < 0) {
+
+		while (buf_len) {
+			rc = recv(fd, recv_buf + recv_off, buf_len, 0);
+			if (rc <= 0) {
 				fprintf(stderr, "recv() failed, errno: %s\n", strerror(errno));
 				if (recv_off <= 0) {
 					goto loop;
@@ -85,6 +87,7 @@ void *get_weather_func(void *arg)
 			}
 
 			recv_off += rc;
+			buf_len -= rc;
 		}
 
 		// DEGUG INFO
@@ -99,7 +102,7 @@ void *get_weather_func(void *arg)
 		}
 
 		curr = prev;
-		while (*curr != '\n' && *curr != '\r') {
+		while (*curr != '\n' && *curr != '\r' && *curr) {
 			curr++;
 		}
 		*curr = '\0';

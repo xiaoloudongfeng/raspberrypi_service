@@ -62,6 +62,12 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
+	rc = pthread_attr_setstacksize(&attr, 1024 * 1024);
+	if (rc < 0) {
+		fprintf(stderr, "pthread_attr_setstacksize() failed\n");
+		return -1;
+	}
+
 	rc = pthread_create(&temp_hum_pt, &attr, temp_hum_func, NULL);
 	if (rc < 0) {
 		fprintf(stderr, "pthread_create() failed\n");
