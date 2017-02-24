@@ -4,8 +4,6 @@
 #include <unistd.h>
 #include <time.h>
 #include <pthread.h>
-#include <sys/stat.h>
-#include <fcntl.h>
 
 #include <bcm2835.h>
 
@@ -14,6 +12,14 @@
 #include "dht22.h"
 #include "12864_display.h"
 #include "srv_func.h"
+
+#define TRY_FUNC(x)								\
+	{											\
+		if ((x) < 0) {							\
+			fprintf(stderr, "%s failed\n", #x);	\
+			return -1;							\
+		}										\
+	}
 
 int gpio_init(void)
 {
@@ -31,7 +37,6 @@ int main(int argc, char **argv)
 	char	   *weeks[] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
 	time_t		timevalue;
 	struct tm  *tm;
-	int			rc;
 	pthread_t	temp_hum_pt, system_usage_pt, weather_pt, srv_pt;
 	pthread_attr_t attr;
 	char		roll_weather[512];
@@ -43,60 +48,27 @@ int main(int argc, char **argv)
 		daemon(1, 0);
 	}
 
-	rc = gpio_init();
-	if (rc < 0) {
+	if (gpio_init() < 0) {
 		return -1;
 	}
 
 	lcd_init();
 
-	rc = pthread_attr_init(&attr);
-	if (rc < 0) {
-		fprintf(stderr, "phtread_attr_init() failed\n");
-		return -1;
-	}
+	TRY_FUNC(pthread_attr_init(&attr));
 
-	rc = pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-	if (rc < 0) {
-		fprintf(stderr, "pthread_attr_setdetachstate() failed\n");
-		return -1;
-	}
+	TRY_FUNC(pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED));
 
-	rc = pthread_attr_setstacksize(&attr, 1024 * 1024);
-	if (rc < 0) {
-		fprintf(stderr, "pthread_attr_setstacksize() failed\n");
-		return -1;
-	}
+	TRY_FUNC(pthread_attr_setstacksize(&attr, 1024 * 1024)); 
 
-	rc = pthread_create(&temp_hum_pt, &attr, temp_hum_func, NULL);
-	if (rc < 0) {
-		fprintf(stderr, "pthread_create() failed\n");
-		return -1;
-	}
+	TRY_FUNC(pthread_create(&temp_hum_pt, &attr, temp_hum_func, NULL));
 
-	rc = pthread_create(&system_usage_pt, &attr, system_usage_func, NULL);
-	if (rc < 0) {
-		fprintf(stderr, "pthread_create() failed\n");
-		return -1;
-	}
+	TRY_FUNC(pthread_create(&system_usage_pt, &attr, system_usage_func, NULL));
 
-	rc = pthread_create(&weather_pt, &attr, get_weather_func, NULL);
-	if (rc < 0) {
-		fprintf(stderr, "pthread_create() failed\n");
-		return -1;
-	}
+	TRY_FUNC(pthread_create(&weather_pt, &attr, get_weather_func, NULL));
 
-	rc = pthread_create(&srv_pt, &attr, srv_func, NULL);
-	if (rc < 0) {
-		fprintf(stderr, "pthread_create() failed\n");
-		return -1;
-	}
+	TRY_FUNC(pthread_create(&srv_pt, &attr, srv_func, NULL));
 
-	rc = pthread_attr_destroy(&attr);
-	if (rc < 0) {
-		fprintf(stderr, "pthread_attr_destroy() failed\n");
-		return -1;
-	}
+	TRY_FUNC(pthread_attr_destroy(&attr));
 
 	//strcpy(weather, "阴转小");	//测试用
 
