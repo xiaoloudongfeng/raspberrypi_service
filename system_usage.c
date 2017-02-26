@@ -49,8 +49,9 @@ static void mem_usage_func(void)
 	}
 
 	mem_usage = (mem_total - mem_available) * 100.0 / mem_total;
-	fprintf(stderr, "mem_total: %d, mem_available: %d, mem_usage: %lf\n", 
-		mem_total, mem_available, mem_usage);
+	
+	// fprintf(stderr, "mem_total: %d, mem_available: %d, mem_usage: %lf\n", 
+	//	mem_total, mem_available, mem_usage);			// DEBUG INFO
 }
 
 static void cpu_usage_func(void)
@@ -72,7 +73,8 @@ static void cpu_usage_func(void)
 			*curr = '\0';
 			if (curr != prev) {					// if not just a ' '
 				word_count++;
-				fprintf(stderr, "%s\n", prev);
+				
+				// fprintf(stderr, "%s\n", prev);	// DEBUG INFO
 
 				if (prev != stat_buf) {			// "cpu" should't be calculated
 					t2_total += atoi(prev);		// add to t1_total
@@ -86,8 +88,9 @@ static void cpu_usage_func(void)
 	}
 	
 	cpu_usage = ((t2_total - t1_total) - (t2_idel - t1_idel)) * 100.0 / (t2_total - t1_total);
-	fprintf(stderr, "t1_total: %d, t1_idel: %d, t2_total: %d, t2_idel: %d, cpu_usage: %lf\n", 
-		t1_total, t1_idel, t2_total, t2_idel, cpu_usage); 
+	
+	// fprintf(stderr, "t1_total: %d, t1_idel: %d, t2_total: %d, t2_idel: %d, cpu_usage: %lf\n", 
+	//	t1_total, t1_idel, t2_total, t2_idel, cpu_usage);	// DEBUG INFO
 
 	t1_total = t2_total;
 	t2_total = 0;

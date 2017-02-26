@@ -35,8 +35,7 @@ void *srv_func(void *arg)
 		goto loop;
 	}
 
-	rc = fcntl(srv_fd, F_SETFL, fcntl(srv_fd, F_GETFL)|O_NONBLOCK);
-	if (rc < 0) {
+	if (fcntl(srv_fd, F_SETFL, fcntl(srv_fd, F_GETFL)|O_NONBLOCK) < 0) {
 		fprintf(stderr, "fcntl() failed\n");
 
 		goto loop;
@@ -46,15 +45,13 @@ void *srv_func(void *arg)
 	addr.sin_port = htons(LISTEN_PORT);
 	inet_pton(AF_INET, "0.0.0.0", &addr.sin_addr);
 
-	rc = bind(srv_fd, (const struct sockaddr *)&addr, sizeof(addr));
-	if (rc < 0) {
+	if (bind(srv_fd, (const struct sockaddr *)&addr, sizeof(addr)) < 0) {
 		fprintf(stderr, "bind() failed\n");
 
 		goto loop;
 	}
 
-	rc = listen(srv_fd, 512);
-	if (rc < 0) {
+	if (listen(srv_fd, 512) < 0) {
 		fprintf(stderr, "listen() failed\n");
 
 		goto loop;
@@ -77,42 +74,63 @@ void *srv_func(void *arg)
 
 	while (1) {
 		rc = epoll_wait(ep_fd, events, 512, -1);
+		
+		fprintf(stderr, "epoll_wait()[%d]\n", rc);
+		
 		if (rc < 0) {
 			fprintf(stderr, "epoll_wait() failed\n");
 
 			goto loop1;
 		}
 
-		fprintf(stderr, "rc %d\n", rc);
+		for (i = 0; i < rc; i++) {
+			if (events[i].data.fd == srv_fd) {
+				address_len = sizeof(cli_addr);
+				memset(&cli_addr, 0, sizeof(cli_addr));
 
-		memset(send_buf, 0, sizeof(send_buf));
-		sprintf(send_buf, "天气[%s]\n"
+				cli_fd = accept(srv_fd, (struct sockaddr *)&cli_addr, &address_len);
+				if (cli_fd < 0) {
+					fprintf(stderr, "accept() failed\n");
+
+					continue;
+				}
+
+				ev.events = EPOLLIN | EPOLLET | EPOLLRDHUP;
+				ev.data.fd = cli_fd;
+				if (epoll_ctl(ep_fd, EPOLL_CTL_ADD, cli_fd, &ev) == -1) {
+					fprintf(stderr, "epoll_ctl() failed\n");
+					
+					close(cli_fd);
+					continue;
+				}
+
+				memset(send_buf, 0, sizeof(send_buf));
+				sprintf(send_buf, "天气[%s]\n"
 						  "室温[%5.1lf℃]湿度[%5.1lf%%%c]\n"
 						   "CPU[%5.1lf%%]内存[%5.1lf%%%c]\n", 
 						   weather, temperature, humidity, 
 						   temp_hum_stat, cpu_usage, mem_usage, weather_stat);
+				
+				send_bytes = send(cli_fd, send_buf, strlen(send_buf), 0);
+				
+				fprintf(stderr, "send()[%d bytes]\n", send_bytes);
+				
+				if (send_bytes < 0) {
+					fprintf(stderr, "send() failed\n");
 
-		for (i = 0; i < rc; i++) {
-			address_len = sizeof(cli_addr);
+					close(cli_fd);
+					continue;
+				}
 
-			cli_fd = accept(srv_fd, (struct sockaddr *)&cli_addr, &address_len);
-			if (cli_fd < 0) {
-				fprintf(stderr, "accept() failed\n");
+			} else {
+				cli_fd = events[i].data.fd;
+				
+				if (events[i].events & EPOLLRDHUP) {
+					fprintf(stderr, "socket closed by client\n");
+				}
 
-				//goto loop1;
-				continue;
+				close(cli_fd);
 			}
-
-			send_bytes = send(cli_fd, send_buf, strlen(send_buf), 0);
-			if (send_bytes < 0) {
-				fprintf(stderr, "send() failed\n");
-
-				//goto loop2;
-			}
-
-			fprintf(stderr, "send %d bytes\n", send_bytes);
-
-			close(cli_fd);
 		}
 	}
 

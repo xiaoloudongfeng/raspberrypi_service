@@ -106,7 +106,8 @@ void *get_weather_func(void *arg)
 			curr++;
 		}
 		*curr = '\0';
-		fprintf(stderr, "prev: %s\n", prev);
+		
+		// fprintf(stderr, "prev: %s\n", prev);	// DEBUG INFO
 
 		word_count = 0;
 

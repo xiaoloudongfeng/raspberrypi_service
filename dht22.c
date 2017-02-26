@@ -93,13 +93,14 @@ void *temp_hum_func(void *arg)
 			fprintf(stderr, "%d ", low_time[i]);
 		}
 		fprintf(stderr, "\n");
-		*/
+		
 
 		fprintf(stderr, "high_time: ");
 		for (i = 0; i < 40; i++) {
 			fprintf(stderr, "%d ", high_time[i] > 200 ? 1 : 0);
 		}
 		fprintf(stderr, "\n");
+		*/		// DEBUG INFO
 	
 		unsigned int test1 = 0;
 		for (i = 0; i < 16; i++) {
@@ -125,9 +126,11 @@ void *temp_hum_func(void *arg)
 			}
 		}
 	
-		fprintf(stderr, "test1: %d[%04X], test2: %d[%04X]\n", test1, test1, test2, test2);
+		// fprintf(stderr, "test1: %d[%04X], test2: %d[%04X]\n", test1, test1, test2, test2);	// DEBUG INFO
+
 		unsigned char test3 = (test1 & 0xFF) + ((test1 >> 8) & 0xFF) + (test2 & 0xFF) + ((test2 >> 8) & 0xFF);
-		fprintf(stderr, "test3: %02X, checksum: %02X\n", test3, checksum);
+		
+		// fprintf(stderr, "test3: %02X, checksum: %02X\n", test3, checksum);	// DEBUG INFO
 	
 		if (test3 == checksum) {
 			error_count = 0;

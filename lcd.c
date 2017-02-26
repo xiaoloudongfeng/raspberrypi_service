@@ -124,7 +124,7 @@ int main(int argc, char **argv)
 				temp_hum_stat, cpu_usage, mem_usage, weather_stat);
 		lcd_print(print_buf);
 
-		fprintf(stderr, "%s", print_buf);
+		// fprintf(stderr, "%s", print_buf);	//DEBUG INFO
 		sleep(1);
 	}
 
