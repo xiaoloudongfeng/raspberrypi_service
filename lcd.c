@@ -21,7 +21,9 @@
 		}										\
 	}
 
-int gpio_init(void)
+struct tm  *tm;
+
+static int gpio_init(void)
 {
 	if (!bcm2835_init()) {
 		fprintf(stderr, "bcm2835_init() failed\n");
@@ -36,7 +38,6 @@ int main(int argc, char **argv)
 	char		print_buf[256] = { 0 };
 	char	   *weeks[] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
 	time_t		timevalue;
-	struct tm  *tm;
 	pthread_t	temp_hum_pt, system_usage_pt, weather_pt, srv_pt;
 	pthread_attr_t attr;
 	char		roll_weather[512];
@@ -52,6 +53,9 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
+	timevalue = time(NULL);
+	tm = localtime(&timevalue);
+	
 	lcd_init();
 
 	TRY_FUNC(pthread_attr_init(&attr));
@@ -74,7 +78,6 @@ int main(int argc, char **argv)
 
 	while (1) {
 		timevalue = time(NULL);
-
 		tm = localtime(&timevalue);
 
 		if (tm->tm_hour >= 22 || tm->tm_hour < 7) {

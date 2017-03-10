@@ -5,10 +5,12 @@
 
 #include <bcm2835.h>
 
-#define DHT			RPI_V2_GPIO_P1_03
+#define DHT				RPI_V2_GPIO_P1_03
 
-#define	DATA_IN		BCM2835_GPIO_FSEL_INPT
-#define	DATA_OUT	BCM2835_GPIO_FSEL_OUTP
+#define	DATA_IN			BCM2835_GPIO_FSEL_INPT
+#define	DATA_OUT		BCM2835_GPIO_FSEL_OUTP
+#define GATHER_COUNT	3
+#define ERROR_COUNT		5
 
 double		temperature = 0.0;
 double		humidity = 0.0;
@@ -16,21 +18,21 @@ char		temp_hum_stat = '!';		// temp_hum_func stat
 
 void *temp_hum_func(void *arg)
 {
-	int wait_low;
-	int wait_high;
-	int wait_low1;
+	int				wait_low;
+	int				wait_high;
+	int				wait_low1;
+	int				low_time[40];
+	int				high_time[40];
 
-	int low_time[40];
-	int high_time[40];
+	unsigned int	temperature_sum = 0;
+	unsigned int	humidity_sum = 0;
+	
+	uint8_t			first_run = 1;
+	uint8_t			error_count = ERROR_COUNT;
+	uint8_t			success_count = 0;
+	int				i;
 
-	int i;
-	int success_count = 10;
-	unsigned int temperature_sum = 0;
-	unsigned int humidity_sum = 0;
-	uint8_t	first_run = 1;
-	uint8_t	error_count = 10;
-
-	while (1) {
+	for ( ;; ) {
 		wait_low = 0;
 		wait_high = 0;
 		wait_low1 = 0;
@@ -134,41 +136,38 @@ void *temp_hum_func(void *arg)
 	
 		if (test3 == checksum) {
 			error_count = 0;
+				
+			success_count++;
+			humidity_sum += test1;
+			temperature_sum += (test2 & 0x7FFF);
 
-			if (success_count == 10) {
-				success_count = 0;
+			if (first_run) {
+				first_run = !first_run;
+				humidity_sum = test1 * GATHER_COUNT;
+				temperature_sum = (test2 & 0x7FFF) * GATHER_COUNT;
+				success_count = GATHER_COUNT;
+			}
 
-				if (first_run) {
-					first_run = 0;
-					humidity_sum = test1 * 10.0;
-					temperature_sum = (test2 & 0x7FFF) * 10.0;
-				}
+			if (success_count == GATHER_COUNT) {
+				humidity = humidity_sum / GATHER_COUNT / 10.0;
+				temperature = temperature_sum / GATHER_COUNT / 10.0;
 
-				humidity = humidity_sum / 100.0;
-	
-				temperature = temperature_sum / 100.0;
 				if (test2 & 0x8000) {
 					temperature = -temperature;
 				}
 
+				success_count = 0;
 				temperature_sum = 0;
 				humidity_sum = 0;
 
-			} else {
-				success_count++;
-				humidity_sum += test1;
-				temperature_sum += (test2 & 0x7FFF);
 			}
-
-		} else {
-			error_count++;
 		}
 
 	loop:
 		error_count++;
 		for (i = 0; i < 2; i++) {
-			if (error_count >= 10) {
-				error_count = 10;
+			if (error_count >= ERROR_COUNT) {
+				error_count = ERROR_COUNT;
 				temp_hum_stat = (temp_hum_stat == '!') ? ' ' : '!';
 
 			} else {

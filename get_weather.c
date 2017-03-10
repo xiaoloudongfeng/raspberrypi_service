@@ -79,8 +79,8 @@ void *get_weather_func(void *arg)
 		while (buf_len) {
 			rc = recv(fd, recv_buf + recv_off, buf_len, 0);
 			if (rc <= 0) {
-				fprintf(stderr, "recv() failed, errno: %s\n", strerror(errno));
 				if (recv_off <= 0) {
+					fprintf(stderr, "recv() failed, errno: %s\n", strerror(errno));
 					goto loop;
 				}
 				break;
