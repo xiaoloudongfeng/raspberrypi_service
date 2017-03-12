@@ -15,6 +15,8 @@
 #include "get_weather.h"
 #include "system_usage.h"
 
+#include "cJSON.h"
+
 #define LISTEN_PORT     2222
 
 extern struct tm  *tm;
@@ -40,6 +42,26 @@ void static fill_resp_buf(char *resp_buf)
     char    send_buf[1024] = {};
     int     send_buf_len;
 
+    cJSON  *root;
+
+    root = cJSON_CreateObject();
+    cJSON_AddStringToObject(root, "weather", weather);
+    cJSON_AddNumberToObject(root, "temperature", temperature);
+    cJSON_AddNumberToObject(root, "humidity", humidity);
+    cJSON_AddNumberToObject(root, "cpu_usage", cpu_usage);
+    cJSON_AddNumberToObject(root, "mem_usage", mem_usage);
+    send_buf[0] = temp_hum_stat;
+    cJSON_AddStringToObject(root, "temp_hum_stat", send_buf);
+    send_buf[0] = weather_stat;
+    cJSON_AddStringToObject(root, "weather_stat", send_buf);
+
+    if (!cJSON_PrintPreallocated(root, send_buf, sizeof(send_buf), 1)) {
+        fprintf(stderr, "cJSON_PrintPreallocated failed!\n");
+    }
+
+    cJSON_Delete(root);
+
+    /*
     sprintf(send_buf, "{\n"
                         "\"weather\": \"%s\",\n"
                         "\"temperature\": %lf,\n"
@@ -51,6 +73,7 @@ void static fill_resp_buf(char *resp_buf)
                         "}", weather, temperature, humidity, 
                         cpu_usage, mem_usage, temp_hum_stat, 
                         weather_stat);
+    */
 
     send_buf_len = strlen(send_buf);
 

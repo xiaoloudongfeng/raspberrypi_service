@@ -12,25 +12,25 @@
 #define GATHER_COUNT    3
 #define ERROR_COUNT     5
 
-double      temperature = 0.0;
-double      humidity = 0.0;
-char        temp_hum_stat = '!';        // temp_hum_func stat
+double  temperature = 0.0;
+double  humidity = 0.0;
+char    temp_hum_stat = '!';        // temp_hum_func stat
 
 void *temp_hum_func(void *arg)
 {
-    int             wait_low;
-    int             wait_high;
-    int             wait_low1;
-    int             low_time[40];
-    int             high_time[40];
+    int          wait_low;
+    int          wait_high;
+    int          wait_low1;
+    int          low_time[40];
+    int          high_time[40];
 
-    unsigned int    temperature_sum = 0;
-    unsigned int    humidity_sum = 0;
+    unsigned int temperature_sum = 0;
+    unsigned int humidity_sum = 0;
     
-    uint8_t         first_run = 1;
-    uint8_t         error_count = ERROR_COUNT;
-    uint8_t         success_count = 0;
-    int             i;
+    uint8_t      first_run = 1;
+    uint8_t      error_count = ERROR_COUNT;
+    uint8_t      success_count = 0;
+    int          i;
 
     for ( ;; ) {
         wait_low = 0;
