@@ -1,5 +1,14 @@
-all:
-	gcc 12864_display.c dht22.c get_weather.c lcd.c system_usage.c srv_func.c cJSON.c -lbcm2835 -lpthread -lm -o lcd -Wall
+src := $(shell ls *.c)
+objs := $(patsubst %.c, %.o, $(src))
+CC = gcc
+CPPFLAGS = -Wall
+LDFLAGS = -lbcm2835 -lpthread -lm
+
+lcd: $(objs)
+	$(CC) $^ -o $@ $(LDFLAGS) 
+
+%.o: %.c
+	$(CC) $(CPPFLAGS) -c -o $@ $<
 
 clean:
-	rm lcd
+	rm *.o lcd
