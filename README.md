@@ -20,7 +20,7 @@ GPIO库用的是WiringPi，dht22对时序要求比较严格，linux不是实时�
 git clone https://github.com/xiaoloudongfeng/raspberrypi.git
 cd raspberrypi
 make
-./chlcd.sh lcd
+./tool/chlcd.sh
 ```
 如果配合systemd目录中的lcd12864.service脚本，可以使用systemctl命令控制程序，当然脚本里的路径可能要修改一下<br>
 启动：<br>
