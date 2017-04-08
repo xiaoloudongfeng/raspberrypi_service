@@ -72,6 +72,8 @@ static int u2g(char *in, size_t inlen, char *out, size_t outlen)
 
 static void check_busy(void)
 {
+    int i = 0;
+
     bcm2835_gpio_set_pud(DATA7, BCM2835_GPIO_PUD_UP);
     bcm2835_gpio_fsel(DATA7, DATA_IN);
     // cmd
@@ -81,7 +83,7 @@ static void check_busy(void)
     // enable
     bcm2835_gpio_write(EN, HIGH);
 
-    while (bcm2835_gpio_lev(DATA7));
+    while (bcm2835_gpio_lev(DATA7) && (i++ < 1000));
     // disable
     bcm2835_gpio_write(EN, LOW);
     
