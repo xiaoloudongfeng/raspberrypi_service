@@ -8,9 +8,10 @@ gpio.jpg是手画的连线图，有点乱，将就看吧，整个服务使用C�
 
 ## 2.依赖
 GPIO库用的是[bcm2835](http://www.airspayce.com/mikem/bcm2835/)，dht22对时序要求比较严格，linux不是实时操作系统，读dht22的总线信号时经常会出问题（漏信号）<br>
-这个库性能比较好，能降低出问题的概率，但是需要root权限，要修改执行文件的特殊权限s，shell脚本chlcd.sh实现了该功能<br>
+这个库性能比较好，能降低出问题的概率，但是需要root权限，修改执行文件的特殊权限s后可由普通用户运行，shell脚本chlcd.sh实现了该功能<br>
 
-## 3.编译
+## 3.编译运行
+经测试该服务在Raspberry Pi B+和Raspberry Pi 2中可稳定运行，系统的话ArchlinuxArm和Raspbian均可，手头没有Raspberry Pi 3的板子，无法测试<br>
 确保依赖库已经正确编译安装<br>
 ```
 git clone https://github.com/xiaoloudongfeng/raspberrypi.git
@@ -31,3 +32,4 @@ systemctl stop lcd12864
 ```
 systemctl enable lcd12864
 ```
+在ArchlinuxArm下，脚本存放路径为/usr/lib/systemd/system，在Raspbian中，路径为/lib/systemd/system<br>
