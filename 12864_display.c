@@ -83,7 +83,7 @@ static void check_busy(void)
     // enable
     bcm2835_gpio_write(EN, HIGH);
 
-    while (bcm2835_gpio_lev(DATA7) && (i++ < 1000));
+    while (bcm2835_gpio_lev(DATA7) && (i++ < 30000));
     // disable
     bcm2835_gpio_write(EN, LOW);
     

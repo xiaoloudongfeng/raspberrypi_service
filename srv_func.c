@@ -28,7 +28,7 @@ static char *months[] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun",
 #define RESPONSE_HEADER "HTTP/1.1 200 OK\r\n"                                   \
                         "Server: Raspberry pi 2\r\n"                            \
                         "Date: %s, %02d %s %4d %02d:%02d:%02d GMT\r\n"          \
-                        "Content-Type: application/json\r\n"                    \
+                        "Content-Type: application/json;charset=utf-8\r\n"      \
                         "Last-Modified: %s, %02d %s %4d %02d:%02d:%02d GMT\r\n" \
                         "Transfer-Encoding: chunked\r\n"                        \
                         "Connection: close\r\n"                                 \
