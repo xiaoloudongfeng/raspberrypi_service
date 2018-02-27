@@ -42,10 +42,15 @@ void static fill_resp_buf(char *resp_buf)
     char    send_buf[1024] = {};
     int     send_buf_len;
 
-    cJSON  *root;
+    cJSON  *root, *item;
 
     root = cJSON_CreateObject();
-    cJSON_AddStringToObject(root, "weather", weather);
+	item = cJSON_Parse(json_weather);
+	if (item == NULL) {
+	    cJSON_AddStringToObject(root, "weather", "");
+	} else {
+		cJSON_AddItemToObject(root, "weather", item);
+	}
     cJSON_AddNumberToObject(root, "temperature", temperature);
     cJSON_AddNumberToObject(root, "humidity", humidity);
     cJSON_AddNumberToObject(root, "cpu_usage", cpu_usage);
