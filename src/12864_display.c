@@ -48,6 +48,8 @@
 #define DATA_IN     BCM2835_GPIO_FSEL_INPT
 #define DATA_OUT    BCM2835_GPIO_FSEL_OUTP
 
+const RPiGPIOPin gpio_pins[] = { DATA0, DATA1, DATA2, DATA3, DATA4, DATA5, DATA6, DATA7 }; 
+
 static int code_convert(char *from, char *to, char *in, size_t *inlen, char *out, size_t *outlen)
 {
     iconv_t cd;
@@ -72,8 +74,6 @@ static int u2g(char *in, size_t inlen, char *out, size_t outlen)
 
 static void check_busy(void)
 {
-    int i = 0;
-
     bcm2835_gpio_set_pud(DATA7, BCM2835_GPIO_PUD_UP);
     bcm2835_gpio_fsel(DATA7, DATA_IN);
     // cmd
@@ -83,6 +83,7 @@ static void check_busy(void)
     // enable
     bcm2835_gpio_write(EN, HIGH);
 
+    int i = 0;
     while (bcm2835_gpio_lev(DATA7) && (i++ < 30000));
     // disable
     bcm2835_gpio_write(EN, LOW);
@@ -93,9 +94,6 @@ static void check_busy(void)
 
 static void lcd_write_data(unsigned char data)
 {
-    int             i = 0;
-    unsigned char   flags[NUM] = {};
-
     check_busy();
 
     // data
@@ -105,8 +103,9 @@ static void lcd_write_data(unsigned char data)
     // enable
     bcm2835_gpio_write(EN, HIGH);
 
+    int i;
     for (i = 0; i < NUM; i++) {
-        flags[i] = ((data >> i) & 0x01);
+        bcm2835_gpio_write(gpio_pins[i], (data >> i) & 0x01);
     }
 
     // DEBUGINFO
@@ -117,15 +116,6 @@ static void lcd_write_data(unsigned char data)
     }
     fprintf(stderr, "\n");
     */
-
-    bcm2835_gpio_write(DATA0, flags[0]);
-    bcm2835_gpio_write(DATA1, flags[1]);
-    bcm2835_gpio_write(DATA2, flags[2]);
-    bcm2835_gpio_write(DATA3, flags[3]);
-    bcm2835_gpio_write(DATA4, flags[4]);
-    bcm2835_gpio_write(DATA5, flags[5]);
-    bcm2835_gpio_write(DATA6, flags[6]);
-    bcm2835_gpio_write(DATA7, flags[7]);
     
     // delay 50us
     usleep(50);
@@ -135,9 +125,6 @@ static void lcd_write_data(unsigned char data)
 
 static void lcd_write_cmd(unsigned char cmd)
 {
-    int             i = 0;
-    unsigned char   flags[NUM] = {};
-
     check_busy();
 
     // cmd 
@@ -147,8 +134,9 @@ static void lcd_write_cmd(unsigned char cmd)
     // enable
     bcm2835_gpio_write(EN, HIGH);
 
+    int i;
     for (i = 0; i < NUM; i++) {
-        flags[i] = ((cmd >> i) & 0x01);
+        bcm2835_gpio_write(gpio_pins[i], (cmd >> i) & 0x01);
     }
 
     // DEBUGINFO
@@ -159,15 +147,6 @@ static void lcd_write_cmd(unsigned char cmd)
     }
     fprintf(stderr, "\n");
     */
-
-    bcm2835_gpio_write(DATA0, flags[0]);
-    bcm2835_gpio_write(DATA1, flags[1]);
-    bcm2835_gpio_write(DATA2, flags[2]);
-    bcm2835_gpio_write(DATA3, flags[3]);
-    bcm2835_gpio_write(DATA4, flags[4]);
-    bcm2835_gpio_write(DATA5, flags[5]);
-    bcm2835_gpio_write(DATA6, flags[6]);
-    bcm2835_gpio_write(DATA7, flags[7]);
 
     // delay 50us
     usleep(50);
@@ -187,14 +166,10 @@ void lcd_light_ctl(int ctl)
 
 void lcd_init(void)
 {
-    bcm2835_gpio_fsel(DATA0, DATA_OUT);
-    bcm2835_gpio_fsel(DATA1, DATA_OUT);
-    bcm2835_gpio_fsel(DATA2, DATA_OUT);
-    bcm2835_gpio_fsel(DATA3, DATA_OUT);
-    bcm2835_gpio_fsel(DATA4, DATA_OUT);
-    bcm2835_gpio_fsel(DATA5, DATA_OUT);
-    bcm2835_gpio_fsel(DATA6, DATA_OUT);
-    bcm2835_gpio_fsel(DATA7, DATA_OUT);
+    int i;
+    for (i = 0; i < NUM; i++) {
+        bcm2835_gpio_fsel(gpio_pins[i], DATA_OUT);
+    }
 
     bcm2835_gpio_fsel(EN, DATA_OUT);
     bcm2835_gpio_fsel(RW, DATA_OUT);

@@ -33,6 +33,11 @@ static int gpio_init(void)
     return 0;
 }
 
+static void gpio_destroy(void)
+{
+    bcm2835_close();
+}
+
 static int start_threads(void)
 {
     typedef struct thread_unit {
@@ -40,7 +45,8 @@ static int start_threads(void)
         pthread_t pt;
     } thread_unit_t;
 
-    thread_unit_t thread_unit_array[] = {   { temp_hum_func, -1 }, 
+    thread_unit_t thread_unit_array[] = {   
+                                            { temp_hum_func, -1 }, 
                                             { system_usage_func, -1 }, 
                                             { get_weather_func, -1 }, 
                                             { srv_func, -1 }
@@ -76,14 +82,10 @@ int main(int argc, char **argv)
         daemon(1, 0);
     }
 
-    if (gpio_init() < 0) {
-        return -1;
-    }
-
-    if (start_threads() < 0) {
-        return -1;
-    }
-
+    TRY_FUNC(gpio_init());
+    
+    TRY_FUNC(start_threads());
+    
     timevalue = time(NULL);
     tm = localtime(&timevalue);
     
@@ -146,7 +148,8 @@ int main(int argc, char **argv)
         sleep(1);
     }
 
-    bcm2835_close();
+    gpio_destroy();
+
     return 0;
 }
 
