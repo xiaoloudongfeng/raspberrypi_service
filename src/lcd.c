@@ -33,13 +33,40 @@ static int gpio_init(void)
     return 0;
 }
 
+static int start_threads(void)
+{
+    typedef struct thread_unit {
+        void *(*thread_func) (void *);
+        pthread_t pt;
+    } thread_unit_t;
+
+    thread_unit_t thread_unit_array[] = {   { temp_hum_func, -1 }, 
+                                            { system_usage_func, -1 }, 
+                                            { get_weather_func, -1 }, 
+                                            { srv_func, -1 }
+                                        };
+    
+    // setup pthread_attr_t
+    pthread_attr_t attr;
+    TRY_FUNC(pthread_attr_init(&attr));
+    TRY_FUNC(pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED));
+    TRY_FUNC(pthread_attr_setstacksize(&attr, 1024 * 1024)); 
+
+    int i;
+    for (i = 0; i < sizeof(thread_unit_array) / sizeof(thread_unit_t); i++) {
+        TRY_FUNC(pthread_create(&thread_unit_array[i].pt, &attr, 
+                                    thread_unit_array[i].thread_func, NULL));
+    }
+    TRY_FUNC(pthread_attr_destroy(&attr));
+
+    return 0;
+}
+
 int main(int argc, char **argv)
 {
     char        print_buf[256] = { 0 };
     char       *weeks[] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
     time_t      timevalue;
-    pthread_t   temp_hum_pt, system_usage_pt, weather_pt, srv_pt;
-    pthread_attr_t attr;
     char        roll_weather[512];
     int         off = 0;
     char       *curr_dis = roll_weather + 6;
@@ -53,26 +80,14 @@ int main(int argc, char **argv)
         return -1;
     }
 
+    if (start_threads() < 0) {
+        return -1;
+    }
+
     timevalue = time(NULL);
     tm = localtime(&timevalue);
     
     lcd_init();
-
-    TRY_FUNC(pthread_attr_init(&attr));
-
-    TRY_FUNC(pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED));
-
-    TRY_FUNC(pthread_attr_setstacksize(&attr, 1024 * 1024)); 
-
-    TRY_FUNC(pthread_create(&temp_hum_pt, &attr, temp_hum_func, NULL));
-
-    TRY_FUNC(pthread_create(&system_usage_pt, &attr, system_usage_func, NULL));
-
-    TRY_FUNC(pthread_create(&weather_pt, &attr, get_weather_func, NULL));
-
-    TRY_FUNC(pthread_create(&srv_pt, &attr, srv_func, NULL));
-
-    TRY_FUNC(pthread_attr_destroy(&attr));
 
     //strcpy(weather, "阴转小");    //测试用
 

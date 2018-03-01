@@ -1,4 +1,4 @@
-src := $(shell ls *.c)
+src := $(shell ls src/*.c)
 objs := $(patsubst %.c, %.o, $(src))
 CC = gcc
 CPPFLAGS = -Wall
@@ -11,4 +11,4 @@ lcd: $(objs)
 	$(CC) $(CPPFLAGS) -c -o $@ $<
 
 clean:
-	rm *.o lcd
+	rm src/*.o lcd
